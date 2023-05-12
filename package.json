@@ -62,6 +62,6 @@
     }
   },
   "publishConfig": {
-   "@hi3g-access:registry": "https://npm.pkg.github.com"
- }
+    "@hi3g-access:registry": "https://npm.pkg.github.com"
+  }
 }
