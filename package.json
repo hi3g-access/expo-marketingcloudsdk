@@ -60,5 +60,8 @@
     "expo": {
       "optional": true
     }
-  }
+  },
+  "publishConfig": {
+   "@hi3g-access:registry": "https://npm.pkg.github.com"
+ }
 }
