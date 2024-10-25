@@ -1,49 +1,58 @@
 package expo.modules.marketingcloudsdk
 
-import android.app.Activity
+import android.app.Application
 import android.content.Context
-import android.os.Bundle
 import android.util.Log
 import com.salesforce.marketingcloud.MCLogListener
 import com.salesforce.marketingcloud.MarketingCloudConfig
 import com.salesforce.marketingcloud.MarketingCloudSdk
 import com.salesforce.marketingcloud.notifications.NotificationCustomizationOptions
+import com.salesforce.marketingcloud.sfmcsdk.BuildConfig
 import com.salesforce.marketingcloud.sfmcsdk.SFMCSdk
 import com.salesforce.marketingcloud.sfmcsdk.SFMCSdkModuleConfig
 import com.salesforce.marketingcloud.sfmcsdk.components.logging.LogLevel
 import com.salesforce.marketingcloud.sfmcsdk.components.logging.LogListener
-import expo.modules.core.interfaces.ReactActivityLifecycleListener
+import expo.modules.core.interfaces.ApplicationLifecycleListener
 
-class ExpoMarketingCloudSdkReactActivityLifecycleListener(activityContext: Context) : ReactActivityLifecycleListener {
-  override fun onCreate(activity: Activity, savedInstanceState: Bundle?) {
+class ExpoMarketingCloudSdkApplicationLifecycleListener : ApplicationLifecycleListener {
+  override fun onCreate(application: Application) {
     // Initialize logging _before_ initializing the SDK to avoid losing valuable debugging information.
-    if(BuildConfig.DEBUG) {
+    if(getDebug(application)) {
       SFMCSdk.setLogging(LogLevel.DEBUG, LogListener.AndroidLogger())
       MarketingCloudSdk.setLogLevel(MCLogListener.VERBOSE)
       MarketingCloudSdk.setLogListener(MCLogListener.AndroidLogListener())
+      SFMCSdk.requestSdk { sdk ->
+        sdk.mp { push ->
+          push.registrationManager.registerForRegistrationEvents {
+            // Log the registration on successful sends to the MC
+            Log.i("~#SFMC-expo", "Registration: $it")
+          }
+        }
+      }
     }
 
     // Configure Salesforce Marketing Cloud SDK
-    SFMCSdk.configure(activity, SFMCSdkModuleConfig.build {
+    SFMCSdk.configure(application, SFMCSdkModuleConfig.build {
       pushModuleConfig = MarketingCloudConfig.builder().apply {
-        setApplicationId(getAppId(activity))
-        setAccessToken(getAccessToken(activity))
-        setAnalyticsEnabled(getAnalyticsEnabled(activity))
-        setMarketingCloudServerUrl(getServerUrl(activity))
-        setDelayRegistrationUntilContactKeyIsSet(getDelayRegistrationUntilContactKeyIsSet(activity))
-        if(getSenderId(activity) != "") setSenderId(getSenderId(activity))
-        setInboxEnabled(getInboxEnabled(activity))
-        setMarkMessageReadOnInboxNotificationOpen(getMarkMessageReadOnInboxNotificationOpen(activity))
+        setApplicationId(getAppId(application))
+        setAccessToken(getAccessToken(application))
+        setAnalyticsEnabled(getAnalyticsEnabled(application))
+        setMarketingCloudServerUrl(getServerUrl(application))
+        setDelayRegistrationUntilContactKeyIsSet(getDelayRegistrationUntilContactKeyIsSet(application))
+        if(getSenderId(application) != "") setSenderId(getSenderId(application))
+        setInboxEnabled(getInboxEnabled(application))
+        setMarkMessageReadOnInboxNotificationOpen(getMarkMessageReadOnInboxNotificationOpen(application))
         setNotificationCustomizationOptions(
                 NotificationCustomizationOptions.create(R.drawable.notification_icon)
         )
-      }.build(activity)
+      }.build(application)
     }) { initStatus ->
       // TODO handle initialization status
       Log.e("SMFCSdk: initStatus", initStatus.toString())
     }
   }
   
+  private fun getDebug(context: Context): Boolean = context.resources.getString(R.string.expo_marketingcloudsdk_debug) == "true"
   private fun getAppId(context: Context): String = context.resources.getString(R.string.expo_marketingcloudsdk_app_id)
   private fun getAccessToken(context: Context): String = context.resources.getString(R.string.expo_marketingcloudsdk_access_token)
   private fun getServerUrl(context: Context): String = context.resources.getString(R.string.expo_marketingcloudsdk_server_url)
