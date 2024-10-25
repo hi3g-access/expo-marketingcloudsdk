@@ -6,34 +6,89 @@ It allows Expo-based apps to integrate with the Marketing Cloud SDK.
 
 ## Installation
 
-To install the package use your prefered package manager:
+To install the package use your preferred package manager:
 
 ```bash
-npm install @allboatsrise/expo-marketingcloudsdk expo-notifications
+npm install @allboatsrise/expo-marketingcloudsdk expo-notifications zod
 ```
 or
 ```bash
-yarn add @allboatsrise/expo-marketingcloudsdk expo-notifications
+yarn add @allboatsrise/expo-marketingcloudsdk expo-notifications zod
 ```
 
 ## Plugin setup
 #### [View parameters](#plugin-parameters)
 
-Add package to `plugins` in `app.js`/`app.config.js`.
+Add package to `plugins` in `app.js`/`app.config.js` with minimal configuration.
 
-```javascript
-expo: {
-  ...
-  plugins: [
+```json
+"expo": {
+  "plugins": [
     [
-      '@allboatsrise/expo-marketingcloudsdk', {
-        appId: << MARKETING_CLOUD_APP_ID >>,
-        accessToken: << MARKETING_CLOUD_ACCESS_TOKEN >>,
-        serverUrl: << MARKETING_CLOUD_SERVER_URL >>,
+      "@allboatsrise/expo-marketingcloudsdk", {
+        "appId": "<< MARKETING_CLOUD_APP_ID >>",
+        "accessToken": "<< MARKETING_CLOUD_ACCESS_TOKEN >>",
+        "serverUrl": "<< MARKETING_CLOUD_SERVER_URL >>",
       }
     ],
-    'expo-notifications',
-  ]
+    "expo-notifications"
+    ]
+}
+```
+
+Sample initialization of notifications in the app
+
+```typescript
+import * as Notifications from 'expo-notifications'
+import * as MarketingCloud from '@allboatsrise/expo-marketingcloudsdk'
+
+// ensure push notifications appear regardless whether app is active or not
+Notifications.setNotificationHandler({
+  handleNotification: async (_notification) => {
+    return {
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }
+  },
+})
+
+export const App: React.FC = () => {
+  useEffect(() => {
+    let cleanup = () => {}
+
+    ;(async () => {
+      // request push notifications permission on load
+      // ideally: show this elsewhere where it's more relevant instead of as soon as when the ap loads
+      let result = await Notifications.getPermissionsAsync()
+      if (!result.granted && result.canAskAgain) {
+        result = await Notifications.requestPermissionsAsync({
+          ios: {
+            allowAlert: true,
+            allowBadge: true,
+            allowSound: true,
+          },
+        })
+      }
+
+      if (!result.granted) return
+
+      const token = await Notifications.getDevicePushTokenAsync()
+
+      // let Marketing Cloud SDK the value of current push token
+      MarketingCloud.setSystemToken(token.data)
+
+      // In rare situations a push token may be changed by the push notification service while the app is running.
+      const subscription = Notifications.addPushTokenListener((newToken) => {
+        MarketingCloud.setSystemToken(newToken.data)
+      })
+      cleanup = () => subscription.remove()
+    })()
+
+    return () => cleanup()
+  }, [])
+
+  // remaining app logic...
 }
 ```
 
@@ -51,7 +106,8 @@ expo: {
 | `analyticsEnabled`                            | boolean | No       | Sets the configuration flag that enables or disables Salesforce MarketingCloud Analytics services                                                   |
 | `applicationControlsBadging`                  | boolean | No       | Sets the configuration value which enables or disables application control over badging                                                             |
 | `delayRegistrationUntilContactKeyIsSet`       | boolean | No       | Sets the configuration value which enables or disables application control over delaying SDK registration until a contact key is set                |
-| `markNotificationReadOnInboxNotificationOpen` | boolean | No       | Sets the configuration value which enables or disables marking inbox notifications as read on open (Android only)                                   |
+| `markNotificationReadOnInboxNotificationOpen` | boolean | No       | Sets the configuration value which enables or disables marking inbox notifications as read on open                                   |
+| `debug`                                       | boolean | No       | Enable logging debug messages                                                                                                                       |
 
 # Usage
 
@@ -83,6 +139,7 @@ Various functions, their parameters, return values, and their specific purposes 
 | `getMessages` | None | `Promise<InboxMessage[]>` | Returns a promise that resolves to an array of `InboxMessage` objects representing the inbox messages. |
 | `getReadMessageCount` | None | `Promise<number>` | Returns a promise that resolves to a number representing the total number of read inbox messages. |
 | `getReadMessages` | None | `Promise<InboxMessage[]>` | Returns a promise that resolves to an array of `InboxMessage` objects representing the read inbox messages. |
+| `trackMessageOpened` | `messageId`: string | Promise<boolean> | Returns a promise that resolves to true when inbox open event successfully triggered on message. |
 
 
 ## Add event listener
@@ -90,8 +147,9 @@ Available event listeners:
 
 | Function | Parameters | Description |
 | --- | --- | --- |
-| `addLogListener` | `listener: (event: LogEventPayload) => void` | Adds a listener function to the `onLog` event, which is triggered when a new log event is generated. The function should take an argument of type `LogEventPayload`, which contains information about the log event. Returns a `Subscription` object that can be used to unsubscribe the listener. |
-| `addInboxResponseListener` | `listener: (event: InboxResponsePayload) => void` | Adds a listener function to the `onInboxResponse` event, which is triggered when a new inbox response is received. The function should take an argument of type `InboxResponsePayload`, which contains information about the inbox response. Returns a `Subscription` object that can be used to unsubscribe the listener. |
+| `addLogListener` | `listener: (event: LogEventPayload) => void` | Adds a listener function to the `onLog` event, which is triggered when a new log event is generated. |
+| `addInboxResponseListener` | `listener: (event: InboxResponsePayload) => void` | Adds a listener function to the `onInboxResponse` event, which is triggered when a new inbox response is received. |
+| `addRegistrationResponseSucceededListener` | `listener: (event: RegistrationResponseSucceededPayload) => void` | Adds a listener function to the `onRegistrationResponseSucceeded` event, which is triggered when SDK successfully registers with backend. |
 
 ```typescript
 // listeners being used in a useEffect hook.
@@ -100,13 +158,19 @@ useEffect(() => {
     const logSubscription = addLogListener((logEvent: LogEventPayload) => {
         // Do something with logEvent
       })
-    const inboxSubscription = addInboxResponseListener((inboxEvent: InboxMessage[]) => {
+
+    const inboxSubscription = addInboxResponseListener((inboxEvent: InboxResponsePayload) => {
         // Do something with inboxEvent
       })
+
+    const registrationSubscription = MarketingCloud.addRegistrationResponseSucceededListener((registrationEvent: RegistrationResponseSucceededPayload) => {
+      // Do something with registrationEvent
+    })
 
     return () => {
       logSubscription.remove()
       inboxSubscription.remove()
+      registrationSubscription.remove()
     }
 }, [])
 ```
