@@ -43,7 +43,35 @@ class ExpoMarketingCloudSdkApplicationLifecycleListener : ApplicationLifecycleLi
         setInboxEnabled(getInboxEnabled(application))
         setMarkMessageReadOnInboxNotificationOpen(getMarkMessageReadOnInboxNotificationOpen(application))
         setNotificationCustomizationOptions(
-                NotificationCustomizationOptions.create(R.drawable.notification_icon)
+          NotificationCustomizationOptions.create { context, notificationMessage ->
+            val builder = NotificationManager.getDefaultNotificationBuilder(
+              context,
+              notificationMessage,
+              NotificationManager.createDefaultNotificationChannel(context),
+              R.drawable.notification_icon
+            )
+            builder.setContentIntent(
+              NotificationManager.redirectIntentForAnalytics(
+                context,
+                PendingIntent.getActivity(
+                  context,
+                  Random.Default.nextInt(),
+                  context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                    // Add custom keys to the intent
+                    notificationMessage.customKeys.forEach { (key, value) ->
+                      putExtra(key, value)
+                    }
+                    if (!notificationMessage.url.isNullOrEmpty()) {
+                      putExtra("url", notificationMessage.url)
+                    }
+                  },
+                  PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                ),
+                notificationMessage,
+                true
+              )
+            )
+          }
         )
       }.build(application)
     }) { initStatus ->
