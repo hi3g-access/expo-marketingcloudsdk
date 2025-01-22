@@ -1,18 +1,21 @@
 package expo.modules.marketingcloudsdk
 
 import android.app.Application
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import com.salesforce.marketingcloud.MCLogListener
 import com.salesforce.marketingcloud.MarketingCloudConfig
 import com.salesforce.marketingcloud.MarketingCloudSdk
 import com.salesforce.marketingcloud.notifications.NotificationCustomizationOptions
-import com.salesforce.marketingcloud.sfmcsdk.BuildConfig
+import com.salesforce.marketingcloud.notifications.NotificationManager
 import com.salesforce.marketingcloud.sfmcsdk.SFMCSdk
 import com.salesforce.marketingcloud.sfmcsdk.SFMCSdkModuleConfig
 import com.salesforce.marketingcloud.sfmcsdk.components.logging.LogLevel
 import com.salesforce.marketingcloud.sfmcsdk.components.logging.LogListener
 import expo.modules.core.interfaces.ApplicationLifecycleListener
+import kotlin.random.Random
 
 class ExpoMarketingCloudSdkApplicationLifecycleListener : ApplicationLifecycleListener {
   override fun onCreate(application: Application) {
