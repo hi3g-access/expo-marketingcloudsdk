@@ -43,7 +43,7 @@ class ExpoMarketingCloudSdkApplicationLifecycleListener : ApplicationLifecycleLi
         setAnalyticsEnabled(getAnalyticsEnabled(application))
         setMarketingCloudServerUrl(getServerUrl(application))
         setDelayRegistrationUntilContactKeyIsSet(getDelayRegistrationUntilContactKeyIsSet(application))
-        if(getSenderId(application) != "") setSenderId(getSenderId(application))
+        // if(getSenderId(application) != "") setSenderId(getSenderId(application))
         setInboxEnabled(getInboxEnabled(application))
         setMarkMessageReadOnInboxNotificationOpen(getMarkMessageReadOnInboxNotificationOpen(application))
         setNotificationCustomizationOptions(
