@@ -1,10 +1,9 @@
 {
   "name": "@hi3g-access/expo-marketingcloudsdk",
   "author": "Hi3G Access AB",
-  "version": "53.0.1",
+  "version": "53.0.1.1",
   "license": "MIT",
   "description": "Expo module for Salesforce Marketing Cloud SDK",
-  
   "homepage": "https://github.com/hi3g-access/expo-marketingcloudsdk",
   "keywords": [
     "react-native",
