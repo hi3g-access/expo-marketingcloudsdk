@@ -1,7 +1,7 @@
 {
   "name": "@hi3g-access/expo-marketingcloudsdk",
   "author": "Hi3G Access AB",
-  "version": "53.0.2",
+  "version": "54.0.0",
   "license": "MIT",
   "description": "Expo module for Salesforce Marketing Cloud SDK",
   "homepage": "https://github.com/hi3g-access/expo-marketingcloudsdk",
@@ -47,15 +47,15 @@
   "dependencies": {},
   "devDependencies": {
     "@types/react": "~19.0.0",
-    "expo-module-scripts": "^4.1.9",
-    "expo-notifications": "^0.31.4",
-    "expo": "~53.0.0",
-    "react-native": "0.79.1",
+    "expo-module-scripts": "5.0.0",
+    "expo-notifications": "~0.32.17",
+    "expo": "~54.0.0",
+    "react-native": "0.81.5",
     "zod": "~3.15.0"
   },
   "peerDependencies": {
-    "expo": ">=53.0.0",
-    "expo-notifications": ">=0.31.4",
+    "expo": ">=54.0.0",
+    "expo-notifications": ">=0.32.17",
     "zod": "^3.15.0"
   },
   "peerDependenciesMeta": {
