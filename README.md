@@ -9,13 +9,13 @@ It allows Expo-based apps to integrate with the Marketing Cloud SDK.
 To install the package use your preferred package manager:
 
 ```bash
-npm install @hi3g-access/expo-marketingcloudsdk expo-notifications zod
+npm install @hi3g-access/expo-marketingcloudsdk expo-notifications
 ```
 
 or
 
 ```bash
-yarn add @hi3g-access/expo-marketingcloudsdk expo-notifications zod
+yarn add @hi3g-access/expo-marketingcloudsdk expo-notifications
 ```
 
 ## Plugin setup

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { ConfigPlugin, createRunOncePlugin } from '@expo/config-plugins';
+import { z } from 'zod';
 import { MarketingCloudSdkPluginProps, MarketingCloudSDKPluginPropsSchema } from './types';
 import { withAndroidConfig } from './android';
 import { withIOSConfig } from './ios';
@@ -11,7 +12,7 @@ const withMarketingCloudSdk: ConfigPlugin<MarketingCloudSdkPluginProps | unknown
   const result = MarketingCloudSDKPluginPropsSchema.safeParse(unsafeProps)
 
   if (!result.success) {
-    throw new Error(`${ERROR_PREFIX} ${result.error.toString()}`);
+    throw new Error(`${ERROR_PREFIX} ${z.prettifyError(result.error)}`);
   }
 
   const props = result.data
