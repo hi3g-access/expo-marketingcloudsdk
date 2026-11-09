@@ -1,5 +1,5 @@
+import { EventSubscription } from 'expo-notifications';
 import ExpoMarketingCloudSdkModule from './ExpoMarketingCloudSdkModule';
-import type { EventSubscription } from 'expo-modules-core';
 import { InboxResponsePayload, LogEventPayload, InboxMessage, RegistrationResponseSucceededPayload } from './ExpoMarketingCloudSdk.types';
 
 export { isSfmcNotificationResponse } from './notifications/helpers/isSfmcNotificationResponse'
@@ -144,11 +144,11 @@ export function addLogListener(listener: (event: LogEventPayload) => void): Even
 }
 
 export function addInboxResponseListener(listener: (event: InboxResponsePayload) => void): EventSubscription {
-  return ExpoMarketingCloudSdkModule.addListener('onInboxResponse', listener)
+  return ExpoMarketingCloudSdkModule.addListener('onInboxResponse', listener);
 }
 
 export function addRegistrationResponseSucceededListener(listener: (event: RegistrationResponseSucceededPayload) => void): EventSubscription {
-  return ExpoMarketingCloudSdkModule.addListener('onRegistrationResponseSucceeded', listener)
+  return ExpoMarketingCloudSdkModule.addListener('onRegistrationResponseSucceeded', listener);
 }
 
 export { LogEventPayload, InboxResponsePayload, InboxMessage, RegistrationResponseSucceededPayload }
